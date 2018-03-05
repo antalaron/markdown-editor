@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Markdown test{% endblock %}
+
+{% block body %}
+
+<div class="container">
+    <h1 class="page-title">Markdown test</h1>
+
+    <p class="lead">Here you can test the markdown code.</p>
+</div>
+
+<div class="container">
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="editor-tab" data-toggle="tab" href="#editor" role="tab" aria-controls="editor" aria-selected="true">Editor</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="preview-tab" data-toggle="tab" href="#preview" role="tab" aria-controls="preview" aria-selected="false">Preview</a>
+        </li>
+    </ul>
+    <div class="tab-content" id="myTabContent">
+        <div class="tab-pane fade show active" id="editor" role="tabpanel" aria-labelledby="editor-tab">
+            <div class="row">
+                <div class="col">
+                    <div class="form-group">
+                        <textarea class="form-control markdown-textarea" id="exampleTextarea" rows="20"></textarea>
+                    </div>
+
+                    <p class="status small" data-default="Drop image to the textarea! 🖖" data-uploading="Uploading file. Be patient! 🙄" data-uploaded="File has been uploaded! 🎉" data-error="File upload failed! 😢">Drop image to the textarea! 🖖</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="preview" role="tabpanel" aria-labelledby="preview-tab">
+            <div class="markdown-target"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
