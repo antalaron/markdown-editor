@@ -11,12 +11,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Image;
+use App\ImageManager;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Validator\Constraints\File;
-use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 /**
  * @author Antal Áron <antalaron@antalaron.hu>
@@ -34,9 +34,14 @@ class DefaultController extends Controller
     /**
      * @Route("/upload", name="upload")
      */
-    public function upload(Request $request, ValidatorInterface $validator)
+    public function upload(Request $request, ImageManager $imageManager)
     {
         $file = $request->files->get('file');
+        if ($imageManager->handle($file)) {
+            return $this->json($imageManager->getResponse());
+        }
+
+        return $this->json($imageManager->getResponse(), Response::HTTP_BAD_REQUEST);
         $violations = $validator->validate($file, [
             new File([
                 'mimeTypes' => [
@@ -57,7 +62,19 @@ class DefaultController extends Controller
             return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
         }
 
-        $fileName = sha1(uniqid()).'.'.$file->guessExtension();
+        $image = new Image();
+        $image
+            ->setName(sha1(uniqid()))
+            ->setType($file->guessExtension())
+            ->setCreatedAt(new \DateTime())
+            ->setSize($file->getSize())
+        ;
+
+        $entityManager = $this->getDoctrine()->getManager();
+        $entityManager->persist($image);
+        $entityManager->flush();
+
+        $fileName = $image->getName().'.'.$image->getType();
         $filePath = '/uploads/images/';
 
         $file->move($this->getParameter('kernel.project_dir').'/public'.$filePath, $fileName);

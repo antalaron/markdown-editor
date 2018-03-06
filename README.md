@@ -1,7 +1,7 @@
 MarkdownEditor
 ==============
 
-Small utility to demonstrate drop-upload.
+Small utility to demonstrate [drop-upload](https://github.com/antalaron/drop-upload).
 
 License
 -------
