@@ -20,31 +20,48 @@ use Symfony\Bridge\Doctrine\RegistryInterface;
  */
 class ImageRepository extends ServiceEntityRepository
 {
-    public function __construct(RegistryInterface $registry)
+    /**
+     * @var string
+     */
+    private $expiredTime;
+
+    public function __construct(RegistryInterface $registry, string $expiredTime)
     {
+        $this->expiredTime = $expiredTime;
+
         parent::__construct($registry, Image::class);
     }
 
-    public function removeExpiredImages()
+    public function removeExpiredImages(): int
     {
         return $this->getEntityManager()
             ->createQueryBuilder('i')
             ->delete($this->getClassName(), 'i')
             ->where('i.createdAt < :yesterday')
-            ->setParameter('yesterday', (new \DateTime())->modify('-1 day'))
+            ->setParameter('yesterday', (new \DateTime())->modify($this->expiredTime))
             ->getQuery()
-            ->excute()
+            ->execute()
         ;
     }
 
-    public function expiredImagesCount()
+    public function expiredImagesCount(): int
     {
         return $this->createQueryBuilder('i')
             ->select('COUNT(i) as ic')
             ->where('i.createdAt < :yesterday')
-            ->setParameter('yesterday', (new \DateTime())->modify('-1 day'))
+            ->setParameter('yesterday', (new \DateTime())->modify($this->expiredTime))
             ->getQuery()
-            ->getSingleScalarResult()
+            ->getSingleScalarResult() ?? 0
+        ;
+    }
+
+    public function findExpiredImages(): iterable
+    {
+        return $this->createQueryBuilder('i')
+            ->where('i.createdAt < :yesterday')
+            ->setParameter('yesterday', (new \DateTime())->modify($this->expiredTime))
+            ->getQuery()
+            ->getResult()
         ;
     }
 
@@ -53,7 +70,7 @@ class ImageRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('i')
             ->select('SUM(i.size) as size')
             ->getQuery()
-            ->getSingleScalarResult()
+            ->getSingleScalarResult() ?? 0
         ;
     }
 }

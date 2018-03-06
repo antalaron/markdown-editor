@@ -16,6 +16,8 @@ use Doctrine\Common\Persistence\ManagerRegistry;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Filesystem\Exception\IOException;
 
 /**
  * @author Antal Áron <antalaron@antalaron.hu>
@@ -45,16 +47,22 @@ class ImageManager
     private $managerRegistry;
 
     /**
+     * @var Filesystem
+     */
+    private $filesystem;
+
+    /**
      * @var array
      */
     private $response = [];
 
-    public function __construct(string $projectDir, int $maxFilesize, ValidatorInterface $validator, ManagerRegistry $managerRegistry)
+    public function __construct(string $projectDir, int $maxFilesize, ValidatorInterface $validator, ManagerRegistry $managerRegistry, Filesystem $filesystem)
     {
         $this->projectDir = $projectDir;
         $this->maxFilesize = $maxFilesize;
         $this->validator = $validator;
         $this->managerRegistry = $managerRegistry;
+        $this->filesystem = $filesystem;
     }
 
     public function handle(UploadedFile $file): bool
@@ -81,6 +89,17 @@ class ImageManager
 
         if ($dryRun) {
             return $entityManager->getRepository(Image::class)->expiredImagesCount();
+        } else {
+            $expiredImages = $entityManager->getRepository(Image::class)->findExpiredImages();
+            foreach ($expiredImages as $expiredImage) {
+                $expiredFileName = $this->projectDir.'/public'.static::UPLOAD_PATH.
+                    ($expiredImage->getName()).'.'.($expiredImage->getType());
+                try {
+                    $this->filesystem->remove($expiredFileName);
+                } catch (IOException $e) {
+                    // no-op
+                }
+            }
         }
 
         return $entityManager->getRepository(Image::class)->removeExpiredImages();
