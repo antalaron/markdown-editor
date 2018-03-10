@@ -42,43 +42,5 @@ class DefaultController extends Controller
         }
 
         return $this->json($imageManager->getResponse(), Response::HTTP_BAD_REQUEST);
-        $violations = $validator->validate($file, [
-            new File([
-                'mimeTypes' => [
-                    'image/gif',
-                    'image/jpeg',
-                    'image/png',
-                ],
-                'maxSize' => '1Mi',
-            ]),
-        ]);
-
-        if (0 !== count($violations)) {
-            $errors = [];
-            foreach ($violations as $violation) {
-                $errors[] = $violation->getMessage();
-            }
-
-            return $this->json(['errors' => $errors], Response::HTTP_BAD_REQUEST);
-        }
-
-        $image = new Image();
-        $image
-            ->setName(sha1(uniqid()))
-            ->setType($file->guessExtension())
-            ->setCreatedAt(new \DateTime())
-            ->setSize($file->getSize())
-        ;
-
-        $entityManager = $this->getDoctrine()->getManager();
-        $entityManager->persist($image);
-        $entityManager->flush();
-
-        $fileName = $image->getName().'.'.$image->getType();
-        $filePath = '/uploads/images/';
-
-        $file->move($this->getParameter('kernel.project_dir').'/public'.$filePath, $fileName);
-
-        return $this->json(['fileName' => $filePath.$fileName]);
     }
 }

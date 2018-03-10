@@ -3,12 +3,11 @@ import 'bootstrap';
 import DropUpload from 'drop-upload';
 import MarkdownIt from 'markdown-it';
 
-
 ($ => {
     "use strict";
 
     $(document).on('drop-upload:error', '.markdown-textarea', (e) => {
-        $('.status').text($('.status').data('error'));
+        $('.status').text($('.status').data('error') + ' (' + e.originalEvent.reason + ')');
         setTimeout(() => {
             $('.status').text($('.status').data('default'));
         }, 5000);
@@ -31,20 +30,26 @@ import MarkdownIt from 'markdown-it';
         clearTimeout(tId);
 
         tId = setTimeout(() => {
-
             let html = md.render($(e.target).val());
             $('.markdown-target').html(html);
         }, 2000);
     })
 
     DropUpload.options.decodeResponseCallback = (r) => {
+        let responseObject;
         try {
-            return JSON.parse(r).fileName;
+            responseObject = JSON.parse(r);
         } catch (err) {
-            return false;
+            throw Error('Error parsing JSON');
         }
+
+        if ('undefined' === typeof responseObject.fileName) {
+            throw Error(responseObject.errors.join());
+        }
+
+        return responseObject.fileName;
     }
-    // DropUpload.options.uploadPath = '/fds';
+
     DropUpload(document, '.markdown-textarea');
 
     let html = md.render($('.markdown-textarea').val());
