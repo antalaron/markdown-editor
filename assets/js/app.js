@@ -7,7 +7,7 @@ import MarkdownIt from 'markdown-it';
     "use strict";
 
     $(document).on('drop-upload:error', '.markdown-textarea', (e) => {
-        $('.status').text($('.status').data('error') + ' (' + e.originalEvent.reason + ')');
+        $('.status').text($('.status').data('error') + ' (' + e.originalEvent.detail.reason + ')');
         setTimeout(() => {
             $('.status').text($('.status').data('default'));
         }, 5000);
